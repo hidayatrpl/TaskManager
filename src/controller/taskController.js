@@ -25,9 +25,9 @@ const getTaskById = (req, res) => {
 }
 
 const createTask = (req, res) => {
-    const { title, description } = req.body;
-    const sql = `INSERT INTO tasks(title, description) VALUES ($1, $2) RETURNING id`;
-    db.query(sql, [title, description], (err, result) => {
+    const { title, description, status } = req.body;
+    const sql = `INSERT INTO tasks(title, description, status) VALUES ($1, $2, COALESCE($3, 'pending')) RETURNING id`;
+    db.query(sql, [title, description, status], (err, result) => {
         if (err) {
             console.error("Error inserting task:", err);
             return response(500, null, err.message, res);
@@ -44,9 +44,8 @@ const createTask = (req, res) => {
 
 const updateTask = (req, res) => {
     const { id } = req.params;
-    const { title, description } = req.body;
-    const status = req.body.status || "pending";
-    const sql = `UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 RETURNING id`;
+    const { title, description, status } = req.body;
+    const sql = `UPDATE tasks SET title = COALESCE($1, title), description   = COALESCE($2, description), status = COALESCE($3, status) WHERE id = $4 RETURNING id`;
     db.query(sql, [title, description, status, id], (err, result) => {
         if (err) {
             console.error("Error updating task:", err);
