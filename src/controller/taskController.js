@@ -44,7 +44,8 @@ const createTask = (req, res) => {
 
 const updateTask = (req, res) => {
     const { id } = req.params;
-    const { title, description, status } = req.body;
+    const { title, description } = req.body;
+    const status = req.body.status || "pending";
     const sql = `UPDATE tasks SET title = $1, description = $2, status = $3 WHERE id = $4 RETURNING id`;
     db.query(sql, [title, description, status, id], (err, result) => {
         if (err) {

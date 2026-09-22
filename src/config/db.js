@@ -1,8 +1,8 @@
 require('dotenv').config();
-const {Pool} = require('pg');
+const { Pool } = require('pg');
 
 const pool = new Pool({
-    user: process.env.DB_USERS,
+    user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
@@ -10,7 +10,7 @@ const pool = new Pool({
 });
 
 pool.connect((err, client, release) => {
-    if(err){
+    if (err) {
         return console.error('Gagal terhubung dengan database:', err.stack);
     }
     console.log("Koneksi berhasil");
