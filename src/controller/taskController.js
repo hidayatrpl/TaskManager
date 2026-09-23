@@ -1,6 +1,5 @@
 const db = require('../config/db');
 const response = require('../response');
-const errorHandler = require('../middleware/errorHandler');
 
 const getAllTask = async (req, res, next) => {
     try {
