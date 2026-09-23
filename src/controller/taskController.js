@@ -1,37 +1,37 @@
 const db = require('../config/db');
 const response = require('../response');
 
-const getAllTask = (req, res) => {
-    const sql = "SELECT * FROM tasks";
-    db.query(sql, (err, result) => {
-        if (err) {
-            console.error("Error fetching tasks:", err);
-            return response(500, null, err.message, res);
-        }
+const getAllTask = async (req, res) => {
+    try {
+        const sql = "SELECT * FROM tasks";
+        const result = await db.query(sql);
         return response(200, result.rows, "Data Success", res);
-    });
+    }
+    catch (err) {
+        console.error("Error fetching tasks:", err);
+        return response(500, null, "Internal Server Error", res);
+    }
 }
 
-const getTaskById = (req, res) => {
-    const { id } = req.params;
-    const sql = "SELECT * FROM tasks WHERE id = $1";
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Error fetching tasks:", err);
-            return response(500, null, err.message, res);
-        }
+const getTaskById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const sql = "SELECT * FROM tasks WHERE id = $1";
+        const result = await db.query(sql, [id]);
+        if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
         return response(200, result.rows, "Data Success", res);
-    });
+    }
+    catch (err) {
+        console.error("Error fetching tasks:", err);
+        return response(500, null, "Internal Server Error", res);
+    }
 }
 
-const createTask = (req, res) => {
-    const { title, description, status } = req.body;
-    const sql = `INSERT INTO tasks(title, description, status) VALUES ($1, $2, COALESCE($3, 'pending')) RETURNING id`;
-    db.query(sql, [title, description, status], (err, result) => {
-        if (err) {
-            console.error("Error inserting task:", err);
-            return response(500, null, err.message, res);
-        }
+const createTask = async (req, res) => {
+    try {
+        const { title, description, status } = req.body;
+        const sql = `INSERT INTO tasks(title, description, status) VALUES ($1, $2, COALESCE($3, 'pending')) RETURNING id`;
+        const result = await db.query(sql, [title, description, status]);
         if (result?.rowCount) {
             const data = {
                 isSuccess: true,
@@ -39,40 +39,48 @@ const createTask = (req, res) => {
             }
             return response(201, data, "Data added Successfully", res);
         }
-    });
+    }
+    catch (err) {
+        console.error("Error inserting task:", err);
+        return response(500, null, "Internal Server Error", res);
+    }
 }
 
-const updateTask = (req, res) => {
-    const { id } = req.params;
-    const { title, description, status } = req.body;
-    const sql = `UPDATE tasks SET title = COALESCE($1, title), description   = COALESCE($2, description), status = COALESCE($3, status) WHERE id = $4 RETURNING id`;
-    db.query(sql, [title, description, status, id], (err, result) => {
-        if (err) {
-            console.error("Error updating task:", err);
-            return response(500, null, err.message, res);
+const updateTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, status } = req.body;
+        const sql = `UPDATE tasks SET title = COALESCE($1, title), description = COALESCE($2, description), status = COALESCE($3, status) WHERE id = $4 RETURNING id`;
+        const result = await db.query(sql, [title, description, status, id]);
+        if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
+        const data = {
+            isSuccess: true,
+            id: result.rows[0].id
         }
-        if (result?.rowCount) {
-            const data = {
-                isSuccess: true,
-                id: result.rows[0].id
-            }
-            return response(201, data, "Data updated Successfully", res);
-        }
-    });
+        return response(201, data, `Data with ID ${id} has been updated successfully`, res);
+    }
+    catch (err) {
+        console.error("Error updating task:", err);
+        return response(500, null, "Internal Server Error", res);
+    }
 }
 
-const deleteTask = (req, res) => {
-    const { id } = req.params;
-    const sql = `DELETE FROM tasks WHERE id = $1`;
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Error deleting task:", err);
-            return response(500, null, err.message, res);
+const deleteTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const sql = `DELETE FROM tasks WHERE id = $1`;
+        const result = await db.query(sql, [id]);
+        if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
+        const data = {
+            isSuccess: true,
+            id: id
         }
-        if (result?.rowCount) {
-            return response(200, null, "Data deleted Successfully", res);
-        }
-    });
+        return response(200, data, `Data with ID ${id} has been deleted successfully`, res);
+    }
+    catch (err) {
+        console.error("Error deleting task:", err);
+        return response(500, null, "Internal Server Error", res);
+    }
 }
 
 module.exports = {
