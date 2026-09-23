@@ -1,19 +1,19 @@
 const db = require('../config/db');
 const response = require('../response');
+const errorHandler = require('../middleware/errorHandler');
 
-const getAllTask = async (req, res) => {
+const getAllTask = async (req, res, next) => {
     try {
         const sql = "SELECT * FROM tasks";
         const result = await db.query(sql);
         return response(200, result.rows, "Data Success", res);
     }
     catch (err) {
-        console.error("Error fetching tasks:", err);
-        return response(500, null, "Internal Server Error", res);
+        next(err);
     }
 }
 
-const getTaskById = async (req, res) => {
+const getTaskById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const sql = "SELECT * FROM tasks WHERE id = $1";
@@ -22,12 +22,11 @@ const getTaskById = async (req, res) => {
         return response(200, result.rows, "Data Success", res);
     }
     catch (err) {
-        console.error("Error fetching tasks:", err);
-        return response(500, null, "Internal Server Error", res);
+        next(err);
     }
 }
 
-const createTask = async (req, res) => {
+const createTask = async (req, res, next) => {
     try {
         const { title, description, status } = req.body;
         const sql = `INSERT INTO tasks(title, description, status) VALUES ($1, $2, COALESCE($3, 'pending')) RETURNING id`;
@@ -41,12 +40,11 @@ const createTask = async (req, res) => {
         }
     }
     catch (err) {
-        console.error("Error inserting task:", err);
-        return response(500, null, "Internal Server Error", res);
+        next(err);
     }
 }
 
-const updateTask = async (req, res) => {
+const updateTask = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, description, status } = req.body;
@@ -57,15 +55,14 @@ const updateTask = async (req, res) => {
             isSuccess: true,
             id: result.rows[0].id
         }
-        return response(201, data, `Data with ID ${id} has been updated successfully`, res);
+        return response(200, data, `Data with ID ${id} has been updated successfully`, res);
     }
     catch (err) {
-        console.error("Error updating task:", err);
-        return response(500, null, "Internal Server Error", res);
+        next(err);
     }
 }
 
-const deleteTask = async (req, res) => {
+const deleteTask = async (req, res, next) => {
     try {
         const { id } = req.params;
         const sql = `DELETE FROM tasks WHERE id = $1`;
@@ -78,8 +75,7 @@ const deleteTask = async (req, res) => {
         return response(200, data, `Data with ID ${id} has been deleted successfully`, res);
     }
     catch (err) {
-        console.error("Error deleting task:", err);
-        return response(500, null, "Internal Server Error", res);
+        next(err);
     }
 }
 
