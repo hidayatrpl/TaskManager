@@ -13,4 +13,21 @@ const validateTask = [
     }
 ];
 
-module.exports = validateTask;
+const validateAuth = [
+    body('username').notEmpty().withMessage('Username is required').isString().withMessage('Username must be a string'),
+    body('email').notEmpty().withMessage('Email is required').isEmail().withMessage('Invalid email address').isString().withMessage('Email must be a string'),
+    body('password').notEmpty().withMessage('Password is required').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return response(400, null, errors.array()[0].msg, res);
+        }
+        next();
+    }
+]
+
+module.exports = {
+    validateTask,
+    validateAuth
+};

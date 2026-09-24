@@ -4,4 +4,4 @@ const port = process.env.PORT;
 
 app.listen(port, () => {
     console.log(`Server berjalan di port ${port}`)
-}); 
+});
