@@ -32,6 +32,7 @@ const login = async (req, res, next) => {
         const { username, password } = req.body;
         const result = await db.query(`SELECT * FROM users WHERE username = $1`, [username]);
         const user = result.rows[0];
+        req.user = user;
         if (!user) return response(401, null, "Invalid username or password", res);
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
