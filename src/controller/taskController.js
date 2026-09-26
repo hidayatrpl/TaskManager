@@ -4,9 +4,9 @@ const response = require('../response');
 const getAllTask = async (req, res, next) => {
     try {
         const { user_id } = req.user;
-        const { limit = 10, offset = 0 } = req.query;
+        const { limit = 10, page = 1 } = req.query;
         const sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1 ORDER BY t.id DESC LIMIT $2 OFFSET $3`;
-        const result = await db.query(sql, [user_id, limit, offset]);
+        const result = await db.query(sql, [user_id, limit, page]);
         return response(200, result.rows, "Data Success", res);
     }
     catch (err) {
@@ -18,8 +18,19 @@ const getTaskById = async (req, res, next) => {
     try {
         const { user_id } = req.user;
         const { id } = req.params;
-        const sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1 AND t.id = $2`;
-        const result = await db.query(sql, [user_id, id]);
+        const { status, category_id } = req.query;
+        let sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1`;
+        if (id) {
+            sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1 AND t.id = $2`;
+        }
+        if (status) {
+            sql += ` AND status = $3`;
+        }
+        if (category_id) {
+            sql += ` AND category_id = $4`;
+        }
+        const params = id ? [user_id, id, status, category_id] : [user_id, status, category_id];
+        const result = await db.query(sql, params);
         if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
         return response(200, result.rows, "Data Success", res);
     }
@@ -57,7 +68,12 @@ const updateTask = async (req, res, next) => {
         const { user_id } = req.user;
         const { id } = req.params;
         const { title, description, status, category_id } = req.body;
-        const sql = `UPDATE tasks SET title = COALESCE($1, title), description = COALESCE($2, description), status = COALESCE($3, status), category_id = COALESCE($4, 1) WHERE user_id = $5 AND id = $6 RETURNING id`;
+        if (category_id) {
+            const checkCategorySql = `SELECT * FROM categories WHERE id = $1 AND user_id = $2`;
+            const checkCategoryResult = await db.query(checkCategorySql, [category_id, user_id]);
+            if (checkCategoryResult.rowCount === 0) return response(404, null, "Category Not Found", res);
+        }
+        const sql = `UPDATE tasks SET title = COALESCE($1, title), description = COALESCE($2, description), status = COALESCE($3, status), category_id = COALESCE($4, category_id) WHERE user_id = $5 AND id = $6 RETURNING id`;
         const result = await db.query(sql, [title, description, status, category_id, user_id, id]);
         if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
         const data = {
