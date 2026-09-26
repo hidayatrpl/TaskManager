@@ -4,6 +4,7 @@ const app = express();
 const taskRoutes = require('./routes/taskRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 app.use(express.json());
@@ -11,6 +12,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api/tasks', taskRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use(errorHandler);
 
 module.exports = app;
