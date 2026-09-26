@@ -4,9 +4,21 @@ const response = require('../response');
 const getAllTask = async (req, res, next) => {
     try {
         const { user_id } = req.user;
-        const { limit = 10, page = 1 } = req.query;
-        const sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1 ORDER BY t.id DESC LIMIT $2 OFFSET $3`;
-        const result = await db.query(sql, [user_id, limit, page]);
+        const { limit = 10, page = 1, status, category_id } = req.query;
+        const offset = (page - 1) * limit;
+        let sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1`;
+        let params = [user_id];
+        if (status) {
+            sql += ` AND t.status = $${params.length + 1}`;
+            params.push(status);
+        }
+        if (category_id) {
+            sql += ` AND t.category_id = $${params.length + 1}`;
+            params.push(category_id);
+        }
+        sql += ` ORDER BY t.id DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+        params.push(limit, offset);
+        const result = await db.query(sql, params);
         return response(200, result.rows, "Data Success", res);
     }
     catch (err) {
@@ -18,19 +30,8 @@ const getTaskById = async (req, res, next) => {
     try {
         const { user_id } = req.user;
         const { id } = req.params;
-        const { status, category_id } = req.query;
-        let sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1`;
-        if (id) {
-            sql = `SELECT t.*, c.name AS category_name FROM tasks t LEFT JOIN categories c ON t.category_id = c.id WHERE t.user_id = $1 AND t.id = $2`;
-        }
-        if (status) {
-            sql += ` AND status = $3`;
-        }
-        if (category_id) {
-            sql += ` AND category_id = $4`;
-        }
-        const params = id ? [user_id, id, status, category_id] : [user_id, status, category_id];
-        const result = await db.query(sql, params);
+        const sql = `SELECT * FROM tasks WHERE user_id = $1 AND id = $2`;
+        const result = await db.query(sql, [user_id, id]);
         if (result.rowCount === 0) return response(404, null, "Data Not Found", res);
         return response(200, result.rows, "Data Success", res);
     }
