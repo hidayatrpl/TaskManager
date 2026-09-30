@@ -1,4 +1,7 @@
-require('dotenv').config();
+require('dotenv').config({
+    path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
+    silent: true
+});
 const { Pool } = require('pg');
 
 const pool = new Pool({
@@ -9,12 +12,12 @@ const pool = new Pool({
     port: process.env.DB_PORT,
 });
 
-pool.connect((err, client, release) => {
-    if (err) {
-        return console.error('Gagal terhubung dengan database:', err.stack);
-    }
-    console.log("Koneksi berhasil");
-    release();
-});
+// pool.connect((err, client, release) => {
+//     if (err) {
+//         return console.error('Gagal terhubung dengan database:', err.stack);
+//     }
+//     console.log("Koneksi berhasil");
+//     release();
+// });
 
 module.exports = pool;
