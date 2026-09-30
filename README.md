@@ -62,6 +62,7 @@ CREATE TABLE tasks (
 ```
 
 4. Buat file `.env` di root project:
+```
 DB_USER=postgres
 DB_PASSWORD=your_password
 DB_HOST=localhost
@@ -69,6 +70,7 @@ DB_PORT=5432
 DB_NAME=task_manager_db
 PORT=3000
 JWT_SECRET=your_secret_key
+```
 
 
 5. Jalankan server
