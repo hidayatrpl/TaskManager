@@ -57,8 +57,35 @@ describe('Task Endpoints', () => {
             .send({ title: 'Judul baru' });
 
         expect(res.statusCode).toBe(200);
+
+        // ambil ulang task-nya, pastikan description masih sama
+        const getRes = await request(app)
+            .get(`/api/tasks/${taskId}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(getRes.body.payload.data[0].description).toBe('Testing otomatis');
     });
 
+    test('GET /api/tasks/:id - gagal akses task milik user lain', async () => {
+        // register + login user kedua
+        const userB = {
+            username: 'userB_' + Date.now(),
+            email: `userB${Date.now()}@example.com`,
+            password: 'password123'
+        };
+        await request(app).post('/api/auth/register').send(userB);
+        const loginRes = await request(app)
+            .post('/api/auth/login')
+            .send({ username: userB.username, password: userB.password });
+        const tokenB = loginRes.body.payload.data.token;
+
+        // coba akses task milik testUser pakai token userB
+        const res = await request(app)
+            .get(`/api/tasks/${taskId}`)
+            .set('Authorization', `Bearer ${tokenB}`);
+
+        expect(res.statusCode).toBe(404);
+    });
     test('DELETE /api/tasks/:id - berhasil hapus task', async () => {
         const res = await request(app)
             .delete(`/api/tasks/${taskId}`)
