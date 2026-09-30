@@ -113,3 +113,17 @@ npm test
 
 ## Author
 Hidayat — [GitHub](https://github.com/hidayatrpl)
+
+## Live Demo
+API ini sudah di-deploy dan bisa dicoba langsung:
+
+**Base URL:** `https://taskmanager-v60r.onrender.com`
+
+> Catatan: hosting menggunakan free tier (Render), jadi request pertama bisa lambat (~30-60 detik) kalau service sedang dalam status idle. Setelah itu responsnya normal.
+
+Contoh test cepat:
+```bash
+curl -X POST https://taskmanager-v60r.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@example.com","password":"password123"}'
+```
